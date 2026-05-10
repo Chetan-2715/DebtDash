@@ -1,0 +1,10 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- DebtDash bolt icon (simplified) -->
+    <path
+        android:fillColor="#0DFFDA"
+        android:pathData="M54,20 L38,56 L50,56 L46,88 L70,48 L56,48 L62,20 Z"/>
+</vector>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DebtDash</string>
+    <string name="app_version">DEBTDASH_V1.0</string>
+    <string name="operator_label">OPERATOR_01</string>
+
+    <!-- Navigation -->
+    <string name="nav_nerve">Nerve</string>
+    <string name="nav_split">Split</string>
+    <string name="nav_shame">Shame</string>
+    <string name="nav_match">Match</string>
+    <string name="nav_system">System</string>
+
+    <!-- Dashboard -->
+    <string name="total_ledger_value">TOTAL_LEDGER_VALUE</string>
+    <string name="active_debts">ACTIVE_DEBTS</string>
+    <string name="recent_intercepts">RECENT_INTERCEPTS</string>
+    <string name="target_contacts">TARGET_CONTACTS</string>
+    <string name="search_placeholder">Search neural records…</string>
+
+    <!-- Split Screen -->
+    <string name="intercept_transaction">INTERCEPT TRANSACTION</string>
+    <string name="logging_protocol">LOGGING_PROTOCOL: SPLIT_REASON_INPUT</string>
+    <string name="what_was_this_for">WHAT WAS THIS FOR?</string>
+    <string name="enter_intent">Enter transaction intent…</string>
+    <string name="distribution_model">DISTRIBUTION_MODEL</string>
+    <string name="equal_split">Equal Split</string>
+    <string name="custom_split">Custom</string>
+    <string name="reset_protocol">RESET PROTOCOL</string>
+    <string name="initialize_split">INITIALIZE SPLIT</string>
+
+    <!-- Nag Engine -->
+    <string name="nag_channel_name">Transaction Reminders</string>
+    <string name="nag_channel_description">Reminds you to tag untagged transactions</string>
+    <string name="nag_title">⚠ Untagged Transactions</string>
+    <string name="nag_text">You have %d transaction(s) without a reason. Tap to tag them.</string>
+
+    <!-- Reverse Match -->
+    <string name="match_found_title">💰 Payment Received</string>
+    <string name="match_found_text">₹%s from %s matches an open debt. Tap to settle.</string>
+
+    <!-- Settings -->
+    <string name="notification_access">Notification Access</string>
+    <string name="notification_access_desc">Required to intercept GPay transactions</string>
+    <string name="about_title">About DebtDash</string>
+
+    <!-- Quick Tags -->
+    <string name="tag_dinner">Dinner</string>
+    <string name="tag_rent">Rent</string>
+    <string name="tag_fuel">Fuel</string>
+    <string name="tag_custom">Custom+</string>
+</resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Deep Space Stealth Palette -->
+    <color name="background_pure">#FF000000</color>
+    <color name="surface">#FF0C1513</color>
+    <color name="neon_teal">#FF0DFFDA</color>
+    <color name="neon_crimson">#FFFF3D71</color>
+    <color name="electric_purple">#FF7000FF</color>
+    <color name="text_primary">#FFFFFFFF</color>
+    <color name="text_secondary">#FFDBE5E0</color>
+    <color name="text_muted">#FF888888</color>
+    <color name="ic_launcher_background">#FF000000</color>
+</resources>
