@@ -55,6 +55,24 @@ interface FriendDao {
                 COALESCE((SELECT SUM(t.amount) FROM transactions t WHERE t.friendId = f.id AND t.type = 'RECEIVED' AND t.isSettled = 0), 0)
             ) AS netDebt
         FROM friends f
+        WHERE f.contactType = :type
+        GROUP BY f.id
+        ORDER BY netDebt DESC
+    """)
+    fun getSummaryByType(type: com.debtdash.app.data.local.entity.ContactType): Flow<List<FriendDebtSummary>>
+
+    @Query("""
+        SELECT 
+            f.id,
+            f.name,
+            f.avatarInitials,
+            f.upiId,
+            (
+                COALESCE((SELECT SUM(t.amount) FROM transactions t WHERE t.friendId = f.id AND t.type = 'SENT' AND t.isSettled = 0), 0) +
+                COALESCE((SELECT SUM(s.amount) FROM splits s WHERE s.friendId = f.id AND s.isPaid = 0), 0) -
+                COALESCE((SELECT SUM(t.amount) FROM transactions t WHERE t.friendId = f.id AND t.type = 'RECEIVED' AND t.isSettled = 0), 0)
+            ) AS netDebt
+        FROM friends f
         WHERE f.contactType = 'FRIEND'
         GROUP BY f.id
         ORDER BY netDebt DESC

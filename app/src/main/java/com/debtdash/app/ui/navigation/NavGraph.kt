@@ -33,7 +33,7 @@ fun DebtDashApp() {
     }
 
     val startDest = if (hasSeenOnboarding) Screen.Nerve.route else "onboarding"
-    val showBottomBar = currentRoute != null && currentRoute != "onboarding" && currentRoute?.startsWith("split") == false
+    val showBottomBar = currentRoute != null && currentRoute != "onboarding" && !currentRoute.startsWith("split")
 
     Scaffold(
         containerColor = BackgroundPure,
@@ -90,6 +90,10 @@ fun DebtDashApp() {
                 FriendsScreen()
             }
 
+            composable(Screen.Business.route) {
+                BusinessScreen()
+            }
+
             composable(Screen.Match.route) { MatchScreen() }
             composable(Screen.System.route) { SettingsScreen() }
 
@@ -108,7 +112,8 @@ fun DebtDashApp() {
                 SplitScreen(
                     prefillTransactionId = txId,
                     prefillAmount = prefillAmount,
-                    prefillReason = prefillReason
+                    prefillReason = prefillReason,
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
         }

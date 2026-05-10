@@ -18,7 +18,7 @@ val SurfaceContainerHigh = Color(0xFF232C29)
 val SurfaceContainerHighest = Color(0xFF2E3734)
 
 // ── Neon Accents ──
-val NeonTeal = Color(0xFF0DFFDA)          // Money In / Success / Primary
+val NeonTeal = Color(0xFF03A9F4)          // Money In / Success / Primary
 val NeonTealBright = Color(0xFF0AFFDA)     // Primary container
 val NeonTealDim = Color(0xFF00DFbF)        // Primary fixed dim
 val NeonCrimson = Color(0xFFFF3D71)        // Money Out / Debt / Danger

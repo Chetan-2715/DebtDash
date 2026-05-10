@@ -18,10 +18,11 @@ sealed class Screen(
 ) {
     data object Nerve : Screen("nerve", "Nerve", Icons.Default.GridView)
     data object Friends : Screen("friends", "Friends", Icons.Default.PeopleAlt)
+    data object Business : Screen("business", "Business", Icons.Default.GridView)
     data object Match : Screen("match", "Match", Icons.AutoMirrored.Filled.CompareArrows)
     data object System : Screen("system", "System", Icons.Default.Settings)
 
     companion object {
-        val items get() = listOf(Nerve, Friends, Match, System)
+        val items get() = listOf(Nerve, Friends, Business, Match, System)
     }
 }

@@ -31,6 +31,9 @@ class DebtRepository @Inject constructor(
     fun getAllTransactions(): Flow<List<TransactionEntity>> =
         transactionDao.getAll()
 
+    fun getAllTransactionsWithFriends(): Flow<List<com.debtdash.app.data.local.dao.TransactionWithFriend>> =
+        transactionDao.getAllWithFriends()
+
     fun getTransactionsByFriend(friendId: Long): Flow<List<TransactionEntity>> =
         transactionDao.getByFriend(friendId)
 
@@ -49,8 +52,8 @@ class DebtRepository @Inject constructor(
     suspend fun insertTransaction(transaction: TransactionEntity): Long =
         transactionDao.insert(transaction)
 
-    suspend fun updateTransactionReason(id: Long, reason: String?) =
-        transactionDao.updateReason(id, reason ?: "")
+    suspend fun updateTransactionReasonAndType(id: Long, reason: String?, type: TransactionType) =
+        transactionDao.updateReasonAndType(id, reason ?: "", type.name)
 
     suspend fun markTransactionSettled(id: Long) =
         transactionDao.markSettled(id)
@@ -73,6 +76,9 @@ class DebtRepository @Inject constructor(
 
     fun getDebtSummary(): Flow<List<FriendDebtSummary>> =
         friendDao.getDebtSummary()
+
+    fun getBusinessSummary(): Flow<List<FriendDebtSummary>> =
+        friendDao.getSummaryByType(com.debtdash.app.data.local.entity.ContactType.BUSINESS)
 
     suspend fun getFriendByUpiId(upiId: String): FriendEntity? =
         friendDao.getByUpiId(upiId)

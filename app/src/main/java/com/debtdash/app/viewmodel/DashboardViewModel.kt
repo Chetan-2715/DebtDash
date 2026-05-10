@@ -18,14 +18,19 @@ class DashboardViewModel @Inject constructor(
     private val repository: DebtRepository
 ) : ViewModel() {
 
-    /** All transactions (latest first) */
-    val transactions: StateFlow<List<TransactionEntity>> =
-        repository.getAllTransactions()
+    /** All transactions with friend details (latest first) */
+    val transactions: StateFlow<List<com.debtdash.app.data.local.dao.TransactionWithFriend>> =
+        repository.getAllTransactionsWithFriends()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /** Cumulative debt summary per friend */
     val debtSummary: StateFlow<List<FriendDebtSummary>> =
         repository.getDebtSummary()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /** Cumulative summary per business */
+    val businessSummary: StateFlow<List<FriendDebtSummary>> =
+        repository.getBusinessSummary()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /** Total ledger value (sum of all unsettled SENT amounts) */

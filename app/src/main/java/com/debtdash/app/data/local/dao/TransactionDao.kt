@@ -1,11 +1,22 @@
 package com.debtdash.app.data.local.dao
 
 import androidx.room.Dao
+import androidx.room.Embedded
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Relation
 import com.debtdash.app.data.local.entity.TransactionEntity
 import kotlinx.coroutines.flow.Flow
+
+data class TransactionWithFriend(
+    @Embedded val transaction: TransactionEntity,
+    @Relation(
+        parentColumn = "friendId",
+        entityColumn = "id"
+    )
+    val friend: com.debtdash.app.data.local.entity.FriendEntity?
+)
 
 /**
  * DAO for transaction operations.
@@ -14,6 +25,10 @@ import kotlinx.coroutines.flow.Flow
 interface TransactionDao {
 
     // ── Reads ──
+
+    @androidx.room.Transaction
+    @Query("SELECT * FROM transactions ORDER BY timestamp DESC")
+    fun getAllWithFriends(): Flow<List<TransactionWithFriend>>
 
     @Query("SELECT * FROM transactions ORDER BY timestamp DESC")
     fun getAll(): Flow<List<TransactionEntity>>
@@ -54,8 +69,8 @@ interface TransactionDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(transaction: TransactionEntity): Long
 
-    @Query("UPDATE transactions SET reason = :reason WHERE id = :id")
-    suspend fun updateReason(id: Long, reason: String)
+    @Query("UPDATE transactions SET reason = :reason, type = :type WHERE id = :id")
+    suspend fun updateReasonAndType(id: Long, reason: String, type: String)
 
     @Query("UPDATE transactions SET isSettled = 1 WHERE id = :id")
     suspend fun markSettled(id: Long)

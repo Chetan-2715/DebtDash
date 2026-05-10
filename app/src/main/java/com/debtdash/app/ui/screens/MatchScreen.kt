@@ -25,7 +25,6 @@ import com.debtdash.app.viewmodel.MatchViewModel
 @Composable
 fun MatchScreen(viewModel: MatchViewModel = hiltViewModel()) {
     val unmatchedReceived by viewModel.unmatchedReceived.collectAsStateWithLifecycle()
-    val unsettledSent by viewModel.unsettledSent.collectAsStateWithLifecycle()
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BackgroundPure),
@@ -70,22 +69,15 @@ fun MatchScreen(viewModel: MatchViewModel = hiltViewModel()) {
         }
 
         // Unsettled outgoing
-        if (unsettledSent.isNotEmpty()) {
-            item {
-                Text("OPEN_DEBTS", style = MaterialTheme.typography.labelLarge, color = NeonCrimson, modifier = Modifier.padding(top = 8.dp))
-            }
-            items(unsettledSent.filter { it.type == TransactionType.SENT }) { tx ->
-                TransactionItem(transaction = tx)
-            }
-        }
+        // MOVED TO FRIENDS/BUSINESS TABS AS PER STEALTH PROTOCOL
 
-        if (unmatchedReceived.isEmpty() && unsettledSent.isEmpty()) {
+        if (unmatchedReceived.isEmpty()) {
             item {
                 GlassmorphicCard {
                     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("NO_MATCHES", style = MaterialTheme.typography.labelLarge, color = NeonTeal)
+                        Text("ALL_CLEAR", style = MaterialTheme.typography.labelLarge, color = NeonTeal)
                         Spacer(Modifier.height(4.dp))
-                        Text("All payments are settled", style = MaterialTheme.typography.bodySmall, color = TextMuted)
+                        Text("No unmatched incoming payments detected", style = MaterialTheme.typography.bodySmall, color = TextMuted)
                     }
                 }
             }

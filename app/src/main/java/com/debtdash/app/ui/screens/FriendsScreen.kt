@@ -5,9 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ElectricBolt
 import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +18,7 @@ import com.debtdash.app.ui.components.DebtCard
 import com.debtdash.app.ui.components.GlassmorphicCard
 import com.debtdash.app.ui.theme.*
 import com.debtdash.app.viewmodel.DashboardViewModel
+import java.util.Locale
 
 /**
  * "Friends" Tab — Cumulative Ledger.
@@ -27,10 +26,10 @@ import com.debtdash.app.viewmodel.DashboardViewModel
  */
 @Composable
 fun FriendsScreen(
-    viewModel: DashboardViewModel = hiltViewModel(),
-    onFriendClick: (Long) -> Unit = {}
+    viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val debtSummary by viewModel.debtSummary.collectAsStateWithLifecycle()
+    val transactions by viewModel.transactions.collectAsStateWithLifecycle()
     val totalLedger = debtSummary.sumOf { it.netDebt }
 
     LazyColumn(
@@ -40,6 +39,7 @@ fun FriendsScreen(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        // ... (Header and Summary logic same)
         // ── Header ──
         item {
             Row(
@@ -57,7 +57,7 @@ fun FriendsScreen(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "TOTAL_OUTSTANDING: ₹${String.format("%,.2f", totalLedger)}",
+                        text = "TOTAL_OUTSTANDING: ₹${String.format(Locale.getDefault(), "%,.2f", totalLedger)}",
                         style = MaterialTheme.typography.labelSmall,
                         color = if (totalLedger >= 0) NeonTeal else NeonCrimson
                     )
@@ -93,6 +93,22 @@ fun FriendsScreen(
                     summary = summary,
                     modifier = Modifier.fillMaxWidth()
                 )
+            }
+        }
+
+        // ── Recent Friend Transactions (The fix for "must be added in friends page") ──
+        val friendTxs = transactions.filter { it.friend?.contactType == com.debtdash.app.data.local.entity.ContactType.FRIEND }
+        if (friendTxs.isNotEmpty()) {
+            item {
+                Text(
+                    "RECENT_PEER_TRANSACTIONS",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = NeonTeal,
+                    modifier = Modifier.padding(top = 12.dp)
+                )
+            }
+            items(friendTxs.take(15)) { txWrapper ->
+                com.debtdash.app.ui.components.TransactionItem(txWrapper = txWrapper)
             }
         }
 

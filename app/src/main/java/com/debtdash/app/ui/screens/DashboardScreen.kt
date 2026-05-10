@@ -117,10 +117,13 @@ fun DashboardScreen(
                     }
                 }
             } else {
-                items(transactions.take(10)) { transaction ->
+                items(transactions.take(10)) { txWrapper ->
                     TransactionItem(
-                        transaction = transaction,
-                        onClick = { onTransactionClick(transaction.id, formatAmount(transaction.amount), transaction.reason) }
+                        txWrapper = txWrapper,
+                        onClick = { 
+                            val tx = txWrapper.transaction
+                            onTransactionClick(tx.id, formatAmount(tx.amount), tx.reason) 
+                        }
                     )
                 }
             }

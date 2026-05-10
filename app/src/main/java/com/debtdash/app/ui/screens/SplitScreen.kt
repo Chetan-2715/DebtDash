@@ -24,6 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.debtdash.app.data.local.entity.ContactType
+import com.debtdash.app.data.local.entity.TransactionType
 import com.debtdash.app.ui.components.GlassmorphicCard
 import com.debtdash.app.ui.components.StealthSearchBar
 import com.debtdash.app.ui.theme.*
@@ -35,7 +37,8 @@ fun SplitScreen(
     viewModel: SplitViewModel = hiltViewModel(),
     prefillTransactionId: Long = -1L,
     prefillAmount: String = "",
-    prefillReason: String = ""
+    prefillReason: String = "",
+    onNavigateBack: () -> Unit = {}
 ) {
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
@@ -43,6 +46,8 @@ fun SplitScreen(
     val reason by viewModel.reason.collectAsStateWithLifecycle()
     val selectedFriends by viewModel.selectedFriends.collectAsStateWithLifecycle()
     val isEqualSplit by viewModel.isEqualSplit.collectAsStateWithLifecycle()
+    val transactionType by viewModel.transactionType.collectAsStateWithLifecycle()
+    val topBusinesses by viewModel.topBusinesses.collectAsStateWithLifecycle()
     val quickTags = listOf("Dinner", "Rent", "Fuel", "Groceries", "Travel", "Custom+")
 
     // ── Show "Add Friend" dialog ──
@@ -74,13 +79,36 @@ fun SplitScreen(
                     Spacer(Modifier.height(4.dp))
                     Text("LOGGING_PROTOCOL:\nSPLIT_REASON_INPUT", style = MaterialTheme.typography.labelSmall, color = TextMuted)
                 }
-                IconButton(onClick = { viewModel.resetForm() }) {
+                IconButton(onClick = onNavigateBack) {
                     Icon(Icons.Default.Close, "Close", tint = TextMuted)
                 }
             }
         }
 
-        // ── Pre-fill indicator (when coming from dashboard) ──
+        // ── Transaction Type Selector (SENT vs RECEIVED) ──
+        item {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.SwapHoriz, null, tint = NeonTeal, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("TRANSACTION_DIRECTION", style = MaterialTheme.typography.labelLarge, color = NeonTeal)
+            }
+            Spacer(Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                val isSent = transactionType == TransactionType.SENT
+                Box(Modifier.weight(1f).background(if (isSent) NeonCrimson.copy(0.2f) else SurfaceContainerLow, ButtonShape)
+                    .border(1.dp, if (isSent) NeonCrimson else OutlineVariant, ButtonShape).clickable { viewModel.setTransactionType(TransactionType.SENT) }.padding(vertical = 12.dp),
+                    contentAlignment = Alignment.Center) {
+                    Text("SENT (DEBT)", style = MaterialTheme.typography.labelLarge, color = if (isSent) NeonCrimson else TextSecondary, fontWeight = FontWeight.Bold)
+                }
+                Box(Modifier.weight(1f).background(if (!isSent) NeonTeal.copy(0.2f) else SurfaceContainerLow, ButtonShape)
+                    .border(1.dp, if (!isSent) NeonTeal else OutlineVariant, ButtonShape).clickable { viewModel.setTransactionType(TransactionType.RECEIVED) }.padding(vertical = 12.dp),
+                    contentAlignment = Alignment.Center) {
+                    Text("RECEIVED (PAY)", style = MaterialTheme.typography.labelLarge, color = if (!isSent) NeonTeal else TextSecondary, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+
+        // ── Pre-fill indicator ──
         if (prefillTransactionId != -1L) {
             item {
                 Row(
@@ -236,6 +264,31 @@ fun SplitScreen(
 
         // Contact Search
         item {
+            if (topBusinesses.isNotEmpty()) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Storefront, null, tint = NeonTeal, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("QUICK_BUSINESS", style = MaterialTheme.typography.labelLarge, color = NeonTeal)
+                }
+                Spacer(Modifier.height(8.dp))
+                androidx.compose.foundation.lazy.LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(topBusinesses) { business ->
+                        val sel = selectedFriends.contains(business.id)
+                        Box(
+                            Modifier.background(if (sel) NeonTeal.copy(0.15f) else SurfaceContainerLow, ChipShape)
+                                .border(1.dp, if (sel) NeonTeal else OutlineVariant, ChipShape)
+                                .clickable { viewModel.toggleFriend(business.id) }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(business.name, style = MaterialTheme.typography.labelMedium, color = if (sel) NeonTeal else TextSecondary)
+                        }
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
+            }
+
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Groups, null, tint = NeonTeal, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(8.dp))
@@ -329,15 +382,20 @@ fun SplitScreen(
             HorizontalDivider(color = OutlineVariant.copy(0.3f))
             Spacer(Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedButton(onClick = { viewModel.resetForm() }, Modifier.weight(1f), shape = ButtonShape,
+                OutlinedButton(onClick = onNavigateBack, Modifier.weight(1f), shape = ButtonShape,
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = NeonTeal),
                     border = androidx.compose.foundation.BorderStroke(1.dp, NeonTeal)) {
-                    Text("RESET", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                    Text("CANCEL", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
                 }
-                Button(onClick = { viewModel.initializeSplit() }, Modifier.weight(1.5f), shape = ButtonShape,
+                Button(onClick = { viewModel.initializeSplit(onSuccess = onNavigateBack) }, Modifier.weight(1.5f), shape = ButtonShape,
                     colors = ButtonDefaults.buttonColors(containerColor = NeonTeal, contentColor = BackgroundPure),
-                    enabled = amount.isNotBlank() && selectedFriends.isNotEmpty()) {
-                    Text("INITIALIZE SPLIT", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                    enabled = amount.isNotBlank() && amount.toDoubleOrNull() != null) {
+                    val label = when {
+                        selectedFriends.isEmpty() -> "LOG PERSONAL"
+                        selectedFriends.size == 1 -> "LOG INDIVIDUAL"
+                        else -> "INITIALIZE SPLIT"
+                    }
+                    Text(label, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.width(4.dp))
                     Icon(Icons.Default.ElectricBolt, null, Modifier.size(16.dp))
                 }
@@ -365,12 +423,12 @@ fun SplitScreen(
 @Composable
 private fun AddFriendDialog(
     onDismiss: () -> Unit,
-    onAdd: (name: String, phone: String?, upiId: String?, contactType: com.debtdash.app.data.local.entity.ContactType) -> Unit
+    onAdd: (name: String, phone: String?, upiId: String?, contactType: ContactType) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var upiId by remember { mutableStateOf("") }
-    var contactType by remember { mutableStateOf(com.debtdash.app.data.local.entity.ContactType.FRIEND) }
+    var contactType by remember { mutableStateOf(ContactType.FRIEND) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -387,14 +445,14 @@ private fun AddFriendDialog(
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 // Category Selection
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    val isFriend = contactType == com.debtdash.app.data.local.entity.ContactType.FRIEND
+                    val isFriend = contactType == ContactType.FRIEND
                     Box(Modifier.weight(1f).background(if (isFriend) NeonTeal else SurfaceContainerLow, ButtonShape)
-                        .border(1.dp, NeonTeal, ButtonShape).clickable { contactType = com.debtdash.app.data.local.entity.ContactType.FRIEND }.padding(vertical = 8.dp),
+                        .border(1.dp, NeonTeal, ButtonShape).clickable { contactType = ContactType.FRIEND }.padding(vertical = 8.dp),
                         contentAlignment = Alignment.Center) {
                         Text("FRIEND", style = MaterialTheme.typography.labelSmall, color = if (isFriend) BackgroundPure else TextSecondary)
                     }
                     Box(Modifier.weight(1f).background(if (!isFriend) NeonCrimson else SurfaceContainerLow, ButtonShape)
-                        .border(1.dp, if (!isFriend) NeonCrimson else OutlineVariant, ButtonShape).clickable { contactType = com.debtdash.app.data.local.entity.ContactType.BUSINESS }.padding(vertical = 8.dp),
+                        .border(1.dp, if (!isFriend) NeonCrimson else OutlineVariant, ButtonShape).clickable { contactType = ContactType.BUSINESS }.padding(vertical = 8.dp),
                         contentAlignment = Alignment.Center) {
                         Text("BUSINESS", style = MaterialTheme.typography.labelSmall, color = if (!isFriend) BackgroundPure else TextSecondary)
                     }

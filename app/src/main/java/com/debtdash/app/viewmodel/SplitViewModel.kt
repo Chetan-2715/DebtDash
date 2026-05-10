@@ -37,6 +37,13 @@ class SplitViewModel @Inject constructor(
             }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val topBusinesses: StateFlow<List<FriendEntity>> =
+        repository.getAllFriends()
+            .flatMapLatest { friends ->
+                kotlinx.coroutines.flow.flowOf(friends.filter { it.contactType == com.debtdash.app.data.local.entity.ContactType.BUSINESS }.take(5))
+            }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     // ── Split Form State ──
     private val _amount = MutableStateFlow("")
     val amount: StateFlow<String> = _amount.asStateFlow()
@@ -50,6 +57,9 @@ class SplitViewModel @Inject constructor(
     private val _isEqualSplit = MutableStateFlow(true)
     val isEqualSplit: StateFlow<Boolean> = _isEqualSplit.asStateFlow()
 
+    private val _transactionType = MutableStateFlow(TransactionType.SENT)
+    val transactionType: StateFlow<TransactionType> = _transactionType.asStateFlow()
+
     // ── Linked transaction (when navigating from dashboard) ──
     private var linkedTransactionId: Long = -1L
 
@@ -58,6 +68,10 @@ class SplitViewModel @Inject constructor(
     }
 
     // ── Actions ──
+
+    fun setTransactionType(type: TransactionType) {
+        _transactionType.value = type
+    }
 
     fun updateSearch(query: String) {
         _searchQuery.value = query
@@ -87,47 +101,57 @@ class SplitViewModel @Inject constructor(
 
     /**
      * Creates the transaction and splits.
-     * If linked to an existing transaction (from dashboard), updates that instead.
+     * Handles Personal (0 friends), Individual (1 friend), and Group (2+ friends) logic.
      */
-    fun initializeSplit() {
+    fun initializeSplit(onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
             val amountValue = _amount.value.toDoubleOrNull() ?: return@launch
             val friends = _selectedFriends.value.toList()
-            if (friends.isEmpty()) return@launch
+            val type = _transactionType.value
 
             val transactionId: Long
 
             if (linkedTransactionId != -1L) {
-                // Update the existing transaction with reason
-                repository.updateTransactionReason(
+                // Update the existing transaction with reason and type
+                repository.updateTransactionReasonAndType(
                     linkedTransactionId,
-                    _reason.value.ifBlank { null }
+                    _reason.value.ifBlank { null },
+                    type
                 )
                 transactionId = linkedTransactionId
             } else {
                 // Create a new manual transaction
                 transactionId = repository.insertTransaction(
                     TransactionEntity(
-                        rawNotificationText = "Manual: Sent ₹$amountValue",
+                        rawNotificationText = "Manual: ${type.name} ₹$amountValue",
                         amount = amountValue,
-                        type = TransactionType.SENT,
+                        type = type,
                         reason = _reason.value.ifBlank { null }
                     )
                 )
             }
 
-            // Create splits
-            if (_isEqualSplit.value) {
-                repository.createEqualSplit(transactionId, amountValue, friends)
+            // ── Split Logic ──
+            if (friends.isNotEmpty()) {
+                if (friends.size == 1) {
+                    // Individual Mode: 100% assigned to that friend
+                    repository.createCustomSplits(transactionId, mapOf(friends[0] to amountValue))
+                    repository.linkTransactionToFriend(transactionId, friends[0])
+                } else {
+                    // Group Mode
+                    if (_isEqualSplit.value) {
+                        repository.createEqualSplit(transactionId, amountValue, friends)
+                    }
+                    // Link all friends to the transaction for history
+                    friends.forEach { friendId ->
+                        repository.linkTransactionToFriend(transactionId, friendId)
+                    }
+                }
             }
 
-            // Link ALL selected friends to the transaction
-            friends.forEach { friendId ->
-                repository.linkTransactionToFriend(transactionId, friendId)
-            }
-
-            // Reset form
+            // Reset form and navigate back
             resetForm()
+            onSuccess()
         }
     }
 

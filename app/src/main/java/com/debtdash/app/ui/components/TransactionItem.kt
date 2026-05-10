@@ -48,10 +48,12 @@ import java.util.Locale
  */
 @Composable
 fun TransactionItem(
-    transaction: TransactionEntity,
+    txWrapper: com.debtdash.app.data.local.dao.TransactionWithFriend,
     onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val transaction = txWrapper.transaction
+    val friendName = txWrapper.friend?.name
     val isSent = transaction.type == TransactionType.SENT
     val accentColor = if (isSent) NeonCrimson else NeonTeal
     val borderColor = if (isSent) GlassBorderCrimson else GlassBorder
@@ -104,7 +106,8 @@ fun TransactionItem(
                     }
 
                     Text(
-                        text = transaction.reason
+                        text = friendName 
+                            ?: transaction.reason
                             ?: transaction.upiId
                             ?: "Unknown",
                         style = MaterialTheme.typography.bodyMedium,
@@ -133,6 +136,22 @@ fun TransactionItem(
             )
         }
     }
+}
+
+/**
+ * Fallback for simple TransactionEntity (without friend relation)
+ */
+@Composable
+fun TransactionItem(
+    transaction: TransactionEntity,
+    onClick: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+    TransactionItem(
+        txWrapper = com.debtdash.app.data.local.dao.TransactionWithFriend(transaction, null),
+        onClick = onClick,
+        modifier = modifier
+    )
 }
 
 private fun formatTimestamp(timestamp: Long): String {
