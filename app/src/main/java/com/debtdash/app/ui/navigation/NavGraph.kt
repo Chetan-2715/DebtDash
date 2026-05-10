@@ -13,16 +13,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.debtdash.app.ui.screens.DashboardScreen
-import com.debtdash.app.ui.screens.MatchScreen
-import com.debtdash.app.ui.screens.OnboardingScreen
-import com.debtdash.app.ui.screens.SettingsScreen
-import com.debtdash.app.ui.screens.ShameScreen
-import com.debtdash.app.ui.screens.SplitScreen
+import com.debtdash.app.ui.screens.*
 import com.debtdash.app.ui.theme.BackgroundPure
 
 /**
  * Root composable — Gates on permissions, then shows Scaffold with bottom nav.
+ * Consolidates UI into Nerve, Friends, Match, and System.
  */
 @Composable
 fun DebtDashApp() {
@@ -31,17 +27,13 @@ fun DebtDashApp() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Check if we should show onboarding
     val hasSeenOnboarding = remember {
         context.getSharedPreferences("debtdash_prefs", Context.MODE_PRIVATE)
             .getBoolean("onboarding_complete", false)
     }
 
-    // Determine start destination
     val startDest = if (hasSeenOnboarding) Screen.Nerve.route else "onboarding"
-
-    // Hide bottom bar on onboarding
-    val showBottomBar = currentRoute != null && currentRoute != "onboarding"
+    val showBottomBar = currentRoute != null && currentRoute != "onboarding" && currentRoute?.startsWith("split") == false
 
     Scaffold(
         containerColor = BackgroundPure,
@@ -75,7 +67,6 @@ fun DebtDashApp() {
                             .edit()
                             .putBoolean("onboarding_complete", true)
                             .apply()
-
                         navController.navigate(Screen.Nerve.route) {
                             popUpTo("onboarding") { inclusive = true }
                         }
@@ -83,25 +74,28 @@ fun DebtDashApp() {
                 )
             }
 
-            // ── Main App Screens ──
+            // ── Main Tabs ──
             composable(Screen.Nerve.route) {
                 DashboardScreen(
                     onTransactionClick = { transactionId, amount, reason ->
-                        // Navigate to Split tab with pre-filled data
-                        navController.navigate(
-                            "split?txId=$transactionId&amount=$amount&reason=${reason ?: ""}"
-                        ) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                        }
+                        navController.navigate("split?txId=$transactionId&amount=$amount&reason=${reason ?: ""}")
+                    },
+                    onManualEntry = {
+                        navController.navigate("split")
                     }
                 )
             }
 
+            composable(Screen.Friends.route) {
+                FriendsScreen()
+            }
+
+            composable(Screen.Match.route) { MatchScreen() }
+            composable(Screen.System.route) { SettingsScreen() }
+
+            // ── Hidden Utility Screens ──
             composable(
-                route = "${Screen.Split.route}?txId={txId}&amount={amount}&reason={reason}",
+                route = "split?txId={txId}&amount={amount}&reason={reason}",
                 arguments = listOf(
                     navArgument("txId") { type = NavType.LongType; defaultValue = -1L },
                     navArgument("amount") { type = NavType.StringType; defaultValue = "" },
@@ -117,10 +111,6 @@ fun DebtDashApp() {
                     prefillReason = prefillReason
                 )
             }
-
-            composable(Screen.Shame.route) { ShameScreen() }
-            composable(Screen.Match.route) { MatchScreen() }
-            composable(Screen.System.route) { SettingsScreen() }
         }
     }
 }

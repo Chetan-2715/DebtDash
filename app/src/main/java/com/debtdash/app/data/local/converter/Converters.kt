@@ -22,4 +22,11 @@ class Converters {
     @TypeConverter
     fun toSplitModel(value: String): SplitModel =
         SplitModel.valueOf(value)
+
+    @TypeConverter
+    fun fromContactType(type: com.debtdash.app.data.local.entity.ContactType): String = type.name
+
+    @TypeConverter
+    fun toContactType(value: String): com.debtdash.app.data.local.entity.ContactType =
+        com.debtdash.app.data.local.entity.ContactType.valueOf(value)
 }

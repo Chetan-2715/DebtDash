@@ -39,10 +39,9 @@ interface FriendDao {
     suspend fun getByUpiId(upiId: String): FriendEntity?
 
     /**
-     * Cumulative debt tracker:
-     * Returns net debt per friend.
-     * Positive netDebt = they owe you (you sent more than received).
-     * Negative netDebt = you owe them.
+     * Cumulative debt tracker (High Performance):
+     * Returns net debt per friend by summing direct transactions AND splits.
+     * Positive netDebt = they owe you.
      */
     @Query("""
         SELECT 
@@ -50,11 +49,13 @@ interface FriendDao {
             f.name,
             f.avatarInitials,
             f.upiId,
-            COALESCE(SUM(CASE WHEN t.type = 'SENT' THEN t.amount ELSE 0 END), 0) -
-            COALESCE(SUM(CASE WHEN t.type = 'RECEIVED' THEN t.amount ELSE 0 END), 0) 
-            AS netDebt
+            (
+                COALESCE((SELECT SUM(t.amount) FROM transactions t WHERE t.friendId = f.id AND t.type = 'SENT' AND t.isSettled = 0), 0) +
+                COALESCE((SELECT SUM(s.amount) FROM splits s WHERE s.friendId = f.id AND s.isPaid = 0), 0) -
+                COALESCE((SELECT SUM(t.amount) FROM transactions t WHERE t.friendId = f.id AND t.type = 'RECEIVED' AND t.isSettled = 0), 0)
+            ) AS netDebt
         FROM friends f
-        LEFT JOIN transactions t ON t.friendId = f.id AND t.isSettled = 0
+        WHERE f.contactType = 'FRIEND'
         GROUP BY f.id
         ORDER BY netDebt DESC
     """)

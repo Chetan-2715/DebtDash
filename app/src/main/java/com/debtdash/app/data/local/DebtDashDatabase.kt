@@ -25,7 +25,7 @@ import com.debtdash.app.data.local.entity.TransactionEntity
         FriendEntity::class,
         SplitEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 @TypeConverters(Converters::class)

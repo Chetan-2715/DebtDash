@@ -132,9 +132,14 @@ class SplitViewModel @Inject constructor(
     }
 
     /**
-     * Adds a new friend to the database.
+     * Adds a new friend to the database with specific categorization.
      */
-    fun addFriend(name: String, phone: String? = null, upiId: String? = null) {
+    fun addFriend(
+        name: String, 
+        phone: String? = null, 
+        upiId: String? = null,
+        contactType: com.debtdash.app.data.local.entity.ContactType = com.debtdash.app.data.local.entity.ContactType.FRIEND
+    ) {
         viewModelScope.launch {
             val initials = name.split(" ")
                 .take(2)
@@ -145,7 +150,8 @@ class SplitViewModel @Inject constructor(
                     name = name,
                     phone = phone,
                     avatarInitials = initials.ifEmpty { "??" },
-                    upiId = upiId
+                    upiId = upiId,
+                    contactType = contactType
                 )
             )
         }

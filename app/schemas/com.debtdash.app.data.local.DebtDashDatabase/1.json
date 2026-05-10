@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "5d291293ab61456ba4938d8b7bd5e1f9",
+    "identityHash": "fa4c5ec5b4a2c2f1889c9ce4cbe31035",
     "entities": [
       {
         "tableName": "transactions",
@@ -120,7 +120,7 @@
       },
       {
         "tableName": "friends",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `phone` TEXT, `avatarInitials` TEXT NOT NULL, `upiId` TEXT, `createdAt` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `phone` TEXT, `avatarInitials` TEXT NOT NULL, `upiId` TEXT, `contactType` TEXT NOT NULL, `createdAt` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -149,6 +149,12 @@
             "fieldPath": "upiId",
             "columnName": "upiId",
             "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "contactType",
+            "columnName": "contactType",
+            "affinity": "TEXT",
+            "notNull": true
           },
           {
             "fieldPath": "createdAt",
@@ -294,7 +300,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5d291293ab61456ba4938d8b7bd5e1f9')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'fa4c5ec5b4a2c2f1889c9ce4cbe31035')"
     ]
   }
 }

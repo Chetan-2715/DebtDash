@@ -9,6 +9,12 @@ import androidx.room.PrimaryKey
 //  Represents a contact in the user's debt network.
 // ══════════════════════════════════════════════════
 
+// ══════════════════════════════════════════════════
+//  Contact Types
+// ══════════════════════════════════════════════════
+
+enum class ContactType { FRIEND, BUSINESS }
+
 @Entity(
     tableName = "friends",
     indices = [
@@ -31,6 +37,9 @@ data class FriendEntity(
 
     /** UPI ID associated with this friend (for auto-matching) */
     val upiId: String? = null,
+
+    /** Categorization for routing logic */
+    val contactType: ContactType = ContactType.FRIEND,
 
     /** Epoch millis when this friend was added */
     val createdAt: Long = System.currentTimeMillis()

@@ -351,8 +351,8 @@ fun SplitScreen(
     if (showAddFriendDialog) {
         AddFriendDialog(
             onDismiss = { showAddFriendDialog = false },
-            onAdd = { name, phone, upiId ->
-                viewModel.addFriend(name, phone, upiId)
+            onAdd = { name, phone, upiId, contactType ->
+                viewModel.addFriend(name, phone, upiId, contactType)
                 showAddFriendDialog = false
             }
         )
@@ -360,16 +360,17 @@ fun SplitScreen(
 }
 
 /**
- * Dialog to add a new friend with name, phone, and UPI ID.
+ * Dialog to add a new contact with categorization choice.
  */
 @Composable
 private fun AddFriendDialog(
     onDismiss: () -> Unit,
-    onAdd: (name: String, phone: String?, upiId: String?) -> Unit
+    onAdd: (name: String, phone: String?, upiId: String?, contactType: com.debtdash.app.data.local.entity.ContactType) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var upiId by remember { mutableStateOf("") }
+    var contactType by remember { mutableStateOf(com.debtdash.app.data.local.entity.ContactType.FRIEND) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -379,11 +380,26 @@ private fun AddFriendDialog(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.PersonAdd, null, tint = NeonTeal, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("ADD_CONTRIBUTOR", fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                Text("CATEGORIZE_CONTACT", fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             }
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                // Category Selection
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    val isFriend = contactType == com.debtdash.app.data.local.entity.ContactType.FRIEND
+                    Box(Modifier.weight(1f).background(if (isFriend) NeonTeal else SurfaceContainerLow, ButtonShape)
+                        .border(1.dp, NeonTeal, ButtonShape).clickable { contactType = com.debtdash.app.data.local.entity.ContactType.FRIEND }.padding(vertical = 8.dp),
+                        contentAlignment = Alignment.Center) {
+                        Text("FRIEND", style = MaterialTheme.typography.labelSmall, color = if (isFriend) BackgroundPure else TextSecondary)
+                    }
+                    Box(Modifier.weight(1f).background(if (!isFriend) NeonCrimson else SurfaceContainerLow, ButtonShape)
+                        .border(1.dp, if (!isFriend) NeonCrimson else OutlineVariant, ButtonShape).clickable { contactType = com.debtdash.app.data.local.entity.ContactType.BUSINESS }.padding(vertical = 8.dp),
+                        contentAlignment = Alignment.Center) {
+                        Text("BUSINESS", style = MaterialTheme.typography.labelSmall, color = if (!isFriend) BackgroundPure else TextSecondary)
+                    }
+                }
+
                 // Name
                 OutlinedTextField(
                     value = name,
@@ -395,26 +411,7 @@ private fun AddFriendDialog(
                         focusedBorderColor = NeonTeal,
                         unfocusedBorderColor = OutlineVariant,
                         focusedLabelColor = NeonTeal,
-                        cursorColor = NeonTeal,
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextSecondary
-                    )
-                )
-                // Phone
-                OutlinedTextField(
-                    value = phone,
-                    onValueChange = { phone = it },
-                    label = { Text("Phone (optional)") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = NeonTeal,
-                        unfocusedBorderColor = OutlineVariant,
-                        focusedLabelColor = NeonTeal,
-                        cursorColor = NeonTeal,
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextSecondary
+                        cursorColor = NeonTeal
                     )
                 )
                 // UPI ID
@@ -429,9 +426,7 @@ private fun AddFriendDialog(
                         focusedBorderColor = NeonTeal,
                         unfocusedBorderColor = OutlineVariant,
                         focusedLabelColor = NeonTeal,
-                        cursorColor = NeonTeal,
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextSecondary
+                        cursorColor = NeonTeal
                     )
                 )
             }
@@ -440,13 +435,16 @@ private fun AddFriendDialog(
             Button(
                 onClick = {
                     if (name.isNotBlank()) {
-                        onAdd(name, phone.ifBlank { null }, upiId.ifBlank { null })
+                        onAdd(name, phone.ifBlank { null }, upiId.ifBlank { null }, contactType)
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = NeonTeal, contentColor = BackgroundPure),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (contactType == com.debtdash.app.data.local.entity.ContactType.FRIEND) NeonTeal else NeonCrimson,
+                    contentColor = BackgroundPure
+                ),
                 enabled = name.isNotBlank()
             ) {
-                Text("ADD", fontWeight = FontWeight.Bold)
+                Text("SAVE", fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
